@@ -1,0 +1,35 @@
+{
+  "name": "pkg-exists",
+  "version": "1.0.0",
+  "description": "Check the existence of a npmjs.com package",
+  "scripts": {
+    "test": "tap"
+  },
+  "main": "index.js",
+  "module": "index.mjs",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "require": "./index.js"
+    }
+  },
+  "author": "Darcy Clarke <darcy@darcyclarke.me>",
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.17.12",
+    "tap": "^16.3.4"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.9",
+    "registry-auth-token": "^5.0.2"
+  },
+  "keywords": [
+    "package",
+    "exists",
+    "existence",
+    "publish",
+    "visibility",
+    "private",
+    "public"
+  ]
+}
