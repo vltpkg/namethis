@@ -1,27 +1,37 @@
 {
-  "name": "pkg-exists",
+  "name": "findmy",
   "version": "1.0.0",
   "description": "Check the existence of a npmjs.com package",
-  "scripts": {
-    "test": "tap"
-  },
-  "main": "index.js",
-  "module": "index.mjs",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./index.mjs",
-      "require": "./index.js"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
-  "author": "Darcy Clarke <darcy@darcyclarke.me>",
+  "bin": {
+    "findmy": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
+    "test": "node --import tsx --test test/index.ts",
+    "prepublishOnly": "vlt run build"
+  },
+  "author": {
+    "name": "Darcy Clarke",
+    "email": "darcy@darcyclarke.me"
+  },
   "license": "MIT",
   "devDependencies": {
-    "esbuild": "^0.17.12",
-    "tap": "^16.3.4"
-  },
-  "dependencies": {
-    "node-fetch": "^2.6.9",
-    "registry-auth-token": "^5.0.2"
+    "@types/node": "^25.9.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
   },
   "keywords": [
     "package",
@@ -30,6 +40,11 @@
     "publish",
     "visibility",
     "private",
-    "public"
-  ]
+    "public",
+    "npm",
+    "registry"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
