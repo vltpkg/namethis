@@ -29,6 +29,14 @@
     "email": "darcy@darcyclarke.me"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vltpkg/namethis.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vltpkg/namethis/issues"
+  },
+  "homepage": "https://github.com/vltpkg/namethis#readme",
   "devDependencies": {
     "@types/node": "^25.9.1",
     "tsx": "^4.19.0",
