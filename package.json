@@ -21,6 +21,7 @@
     "build": "tsc",
     "start": "node dist/cli.js",
     "test": "node --import tsx --test test/index.ts",
+    "release": "bash scripts/release.sh",
     "prepublishOnly": "vlt run build"
   },
   "author": {
