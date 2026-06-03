@@ -1,3 +1,7 @@
+import { validate } from "./validate.js";
+export type { ValidationResult } from "./validate.js";
+export { validate } from "./validate.js";
+
 const DEFAULT_REGISTRY = "https://registry.npmjs.org";
 
 export interface ExistsOptions {
@@ -13,6 +17,10 @@ export interface ExistsResult {
   type?: ExistsType;
   scope?: ScopeKind;
   url?: string;
+  validForNewPackages?: boolean;
+  validForOldPackages?: boolean;
+  warnings?: string[];
+  errors?: string[];
 }
 
 async function isPublic(
@@ -59,8 +67,25 @@ async function checkOne(
   pkg: string,
   registry: string,
 ): Promise<ExistsResult> {
+  const v = validate(pkg);
+  const validationFields: Partial<ExistsResult> = {
+    validForNewPackages: v.validForNewPackages,
+    validForOldPackages: v.validForOldPackages,
+    ...(v.warnings && { warnings: v.warnings }),
+    ...(v.errors && { errors: v.errors }),
+  };
+
+  if (!v.validForOldPackages) {
+    return { exists: false, ...validationFields };
+  }
+
   if (await isPublic(pkg, registry)) {
-    return { exists: true, type: "package", url: npmUrl(pkg, "package") };
+    return {
+      exists: true,
+      type: "package",
+      url: npmUrl(pkg, "package"),
+      ...validationFields,
+    };
   }
 
   const scope = await checkScope(pkg, registry);
@@ -70,10 +95,11 @@ async function checkOne(
       type: "scope",
       scope: scope.kind,
       url: npmUrl(pkg, "scope", scope.kind),
+      ...validationFields,
     };
   }
 
-  return { exists: false };
+  return { exists: false, ...validationFields };
 }
 
 // Single package, default (boolean)

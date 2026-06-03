@@ -100,15 +100,25 @@ Exit codes:
 - `0` — all queried packages exist
 - `1` — one or more packages do not exist
 
+## Important: Registry-Side Restrictions
+
+Even if `exists()` reports that a name is available, the registry may still reject a publish attempt. npm applies additional server-side validation beyond what can be checked locally, including:
+
+- **Name squatting policies** — names that were previously published (even if later unpublished) may be reserved.
+- **Trademark and moniker rules** — names too similar to existing popular packages can be blocked.
+- **Spam and abuse filters** — automated systems may flag certain names.
+
+This library validates names against [npm's naming rules](https://github.com/npm/validate-npm-package-name) and checks registry existence, but a successful check is not a guarantee that you will be able to publish under that name.
+
 ## API
 
 ### `exists(name: string, options?): Promise<boolean>`
 
-Returns `true` if the package or its scope exists on the registry.
+Returns `true` if the package or its scope exists on the registry. Names that are invalid per npm's naming rules return `false` immediately without a network request.
 
 ### `exists(name: string, { detailed: true }): Promise<ExistsResult>`
 
-Returns a detailed result object with type, scope kind, and URL.
+Returns a detailed result object with type, scope kind, URL, and validation info.
 
 ### `exists(names: string[], options?): Promise<boolean>`
 
@@ -118,6 +128,25 @@ Checks multiple packages concurrently. Returns `true` only if all exist.
 
 Checks multiple packages concurrently. Returns a `Map` of detailed results.
 
+### `validate(name: string): ValidationResult`
+
+Validates a package name against [npm's naming rules](https://github.com/npm/validate-npm-package-name) without making any network requests.
+
+```ts
+import { validate } from "findmy";
+
+validate("my-package");
+// { validForNewPackages: true, validForOldPackages: true }
+
+validate("My Package!");
+// {
+//   validForNewPackages: false,
+//   validForOldPackages: false,
+//   errors: ["name can only contain URL-friendly characters"],
+//   warnings: ["name can no longer contain capital letters", "name can no longer contain special characters (\"~'!()*\")"]
+// }
+```
+
 ### `ExistsResult`
 
 ```ts
@@ -126,6 +155,10 @@ interface ExistsResult {
   type?: "package" | "scope";
   scope?: "user" | "org";
   url?: string;
+  validForNewPackages?: boolean;
+  validForOldPackages?: boolean;
+  warnings?: string[];
+  errors?: string[];
 }
 ```
 
@@ -138,6 +171,21 @@ interface ExistsResult {
 | `scope` | `"org"` | The scope belongs to an organization |
 | `scope` | `undefined` | Not a scope match (either a direct package or not found) |
 | `url` | `string` | Link to the package or scope on npmjs.com |
+| `validForNewPackages` | `boolean` | Name meets all current npm naming rules |
+| `validForOldPackages` | `boolean` | Name meets legacy npm naming rules (less strict) |
+| `warnings` | `string[]` | Naming issues that prevent new package registration |
+| `errors` | `string[]` | Naming issues that make the name fundamentally invalid |
+
+### `ValidationResult`
+
+```ts
+interface ValidationResult {
+  validForNewPackages: boolean;
+  validForOldPackages: boolean;
+  warnings?: string[];
+  errors?: string[];
+}
+```
 
 ### `synonyms(name: string, options?: SimilarOptions): Promise<string[]>`
 

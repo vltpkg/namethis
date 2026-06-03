@@ -76,13 +76,20 @@ if (view === "json") {
 } else {
   for (const [pkg, result] of resultsMap) {
     let status: string;
-    if (!result.exists) {
+    if (result.errors?.length) {
+      status = `invalid name (${result.errors.join("; ")})`;
+    } else if (!result.exists) {
       status = "not found";
     } else if (result.type === "scope") {
       status = `exists (scope: ${result.scope}) ${result.url}`;
     } else {
       status = `exists (${result.type}) ${result.url}`;
     }
+
+    if (result.warnings?.length) {
+      status += ` [warning: ${result.warnings.join("; ")}]`;
+    }
+
     console.log(`${pkg}: ${status}`);
   }
 }

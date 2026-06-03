@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { exists, synonyms } from "../src/index.js";
+import { exists, synonyms, validate } from "../src/index.js";
 
 describe("pkg-exists", () => {
   it("returns false for a non-existent package", async () => {
@@ -44,6 +44,83 @@ describe("pkg-exists", () => {
     assert.equal(r?.exists, true);
     assert.equal(r?.type, "package");
     assert.ok(r?.url);
+  });
+});
+
+describe("validate", () => {
+  it("accepts a valid package name", () => {
+    const result = validate("my-package");
+    assert.equal(result.validForNewPackages, true);
+    assert.equal(result.validForOldPackages, true);
+    assert.equal(result.errors, undefined);
+    assert.equal(result.warnings, undefined);
+  });
+
+  it("accepts a valid scoped name", () => {
+    const result = validate("@scope/my-package");
+    assert.equal(result.validForNewPackages, true);
+    assert.equal(result.validForOldPackages, true);
+  });
+
+  it("rejects empty string", () => {
+    const result = validate("");
+    assert.equal(result.validForOldPackages, false);
+    assert.ok(result.errors?.length);
+  });
+
+  it("rejects names starting with a period", () => {
+    const result = validate(".hidden");
+    assert.equal(result.validForOldPackages, false);
+    assert.ok(result.errors?.some((e) => e.includes("period")));
+  });
+
+  it("rejects names starting with a hyphen", () => {
+    const result = validate("-bad");
+    assert.equal(result.validForOldPackages, false);
+    assert.ok(result.errors?.some((e) => e.includes("hyphen")));
+  });
+
+  it("rejects names with non-URL-safe characters", () => {
+    const result = validate("my package");
+    assert.equal(result.validForOldPackages, false);
+    assert.ok(result.errors?.some((e) => e.includes("URL-friendly")));
+  });
+
+  it("warns about uppercase letters", () => {
+    const result = validate("MyPackage");
+    assert.equal(result.validForNewPackages, false);
+    assert.equal(result.validForOldPackages, true);
+    assert.ok(result.warnings?.some((w) => w.includes("capital")));
+  });
+
+  it("warns about core module names", () => {
+    const result = validate("http");
+    assert.equal(result.validForNewPackages, false);
+    assert.ok(result.warnings?.some((w) => w.includes("core module")));
+  });
+
+  it("rejects node_modules", () => {
+    const result = validate("node_modules");
+    assert.equal(result.validForOldPackages, false);
+  });
+});
+
+describe("exists + validation", () => {
+  it("returns false for an invalid name without hitting the registry", async () => {
+    assert.equal(await exists(".invalid-pkg"), false);
+  });
+
+  it("includes validation details in detailed mode for invalid names", async () => {
+    const result = await exists(".invalid-pkg", { detailed: true });
+    assert.equal(result.exists, false);
+    assert.equal(result.validForOldPackages, false);
+    assert.ok(result.errors?.length);
+  });
+
+  it("includes validation fields for valid names in detailed mode", async () => {
+    const result = await exists("react", { detailed: true });
+    assert.equal(result.validForNewPackages, true);
+    assert.equal(result.validForOldPackages, true);
   });
 });
 
