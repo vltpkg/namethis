@@ -1,6 +1,6 @@
 {
   "name": "namethis",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Check the existence of a npmjs.com package",
   "type": "module",
   "main": "./dist/index.js",
@@ -33,9 +33,12 @@
     "type": "git",
     "url": "https://github.com/vltpkg/namethis.git"
   },
-  "bugs": {
-    "url": "https://github.com/vltpkg/namethis/issues"
-  },
+  "bugs": [
+    {
+      "type": "link",
+      "url": "https://github.com/vltpkg/namethis/issues"
+    }
+  ],
   "homepage": "https://github.com/vltpkg/namethis#readme",
   "devDependencies": {
     "@types/node": "^25.9.1",
