@@ -4,6 +4,20 @@ import { exists } from "./index.js";
 import { synonyms } from "./similar.js";
 import type { ExistsResult } from "./index.js";
 
+const useColor = process.env.FORCE_COLOR !== undefined
+  ? process.env.FORCE_COLOR !== "0"
+  : !process.env.NO_COLOR && !!process.stdout.isTTY;
+
+const esc = (code: string) => (s: string) =>
+  useColor ? `\x1b[${code}m${s}\x1b[0m` : s;
+
+const bold = esc("1");
+const dim = esc("2");
+const red = esc("31");
+const green = esc("32");
+const yellow = esc("33");
+const cyan = esc("36");
+
 const args = process.argv.slice(2);
 
 if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
@@ -74,36 +88,53 @@ if (view === "json") {
   const out: Record<string, ExistsResult> = Object.fromEntries(resultsMap);
   console.log(JSON.stringify(out, null, 2));
 } else {
-  for (const [pkg, result] of resultsMap) {
+  console.log();
+  const entries = [...resultsMap.entries()];
+  for (let i = 0; i < entries.length; i++) {
+    const [pkg, result] = entries[i];
+
+    if (i > 0) console.log();
+
     if (result.errors?.length) {
-      let line = `${pkg}: invalid name (${result.errors.join("; ")})`;
+      console.log(`  ${red("✗")} ${bold(pkg)} ${dim(`— invalid: ${result.errors.join("; ")}`)}`);
       if (result.warnings?.length) {
-        line += ` [warning: ${result.warnings.join("; ")}]`;
+        console.log(`    ${yellow("⚠")} ${yellow(result.warnings.join("; "))}`);
       }
-      console.log(line);
       continue;
     }
 
     if (!result.exists || !result.matches?.length) {
-      let line = `${pkg}: not found`;
+      console.log(`  ${green("✓")} ${bold(pkg)} ${dim("— available")}`);
       if (result.warnings?.length) {
-        line += ` [warning: ${result.warnings.join("; ")}]`;
+        console.log(`    ${yellow("⚠")} ${yellow(result.warnings.join("; "))}`);
       }
-      console.log(line);
       continue;
     }
 
-    for (const match of result.matches) {
-      const label = match.type === "scope"
-        ? `scope: ${match.scope}`
-        : match.type;
-      console.log(`${pkg}: exists (${label}) ${match.url}`);
+    const pkgMatch = result.matches.find((m) => m.type === "package");
+    const scopeMatch = result.matches.find((m) => m.type === "scope");
+    const scopeLabel = scopeMatch ? (scopeMatch.scope ?? "scope") : "scope";
+
+    console.log(`  ${bold(pkg)}`);
+
+    if (pkgMatch) {
+      console.log(`    ${red("✗")} ${"package".padEnd(8)}  ${cyan(pkgMatch.url)}`);
+    } else {
+      console.log(`    ${green("✓")} ${"package".padEnd(8)}  ${dim("— available")}`);
+    }
+
+    if (scopeMatch) {
+      console.log(`    ${red("✗")} ${scopeLabel.padEnd(8)}  ${cyan(scopeMatch.url)}`);
+    } else {
+      console.log(`    ${green("✓")} ${"scope".padEnd(8)}  ${dim("— available")}`);
     }
 
     if (result.warnings?.length) {
-      console.log(`${pkg}: [warning: ${result.warnings.join("; ")}]`);
+      console.log(`    ${yellow("⚠")} ${yellow(result.warnings.join("; "))}`);
     }
+
   }
+  console.log();
 }
 
 process.exit(allExist ? 0 : 1);
