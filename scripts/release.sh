@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "==> Installing dependencies"
+vlt install
+
 VERSION_ARGS=("$@")
 
 if [ ${#VERSION_ARGS[@]} -gt 0 ]; then
