@@ -75,22 +75,34 @@ if (view === "json") {
   console.log(JSON.stringify(out, null, 2));
 } else {
   for (const [pkg, result] of resultsMap) {
-    let status: string;
     if (result.errors?.length) {
-      status = `invalid name (${result.errors.join("; ")})`;
-    } else if (!result.exists) {
-      status = "not found";
-    } else if (result.type === "scope") {
-      status = `exists (scope: ${result.scope}) ${result.url}`;
-    } else {
-      status = `exists (${result.type}) ${result.url}`;
+      let line = `${pkg}: invalid name (${result.errors.join("; ")})`;
+      if (result.warnings?.length) {
+        line += ` [warning: ${result.warnings.join("; ")}]`;
+      }
+      console.log(line);
+      continue;
+    }
+
+    if (!result.exists || !result.matches?.length) {
+      let line = `${pkg}: not found`;
+      if (result.warnings?.length) {
+        line += ` [warning: ${result.warnings.join("; ")}]`;
+      }
+      console.log(line);
+      continue;
+    }
+
+    for (const match of result.matches) {
+      const label = match.type === "scope"
+        ? `scope: ${match.scope}`
+        : match.type;
+      console.log(`${pkg}: exists (${label}) ${match.url}`);
     }
 
     if (result.warnings?.length) {
-      status += ` [warning: ${result.warnings.join("; ")}]`;
+      console.log(`${pkg}: [warning: ${result.warnings.join("; ")}]`);
     }
-
-    console.log(`${pkg}: ${status}`);
   }
 }
 

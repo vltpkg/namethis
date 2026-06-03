@@ -12,11 +12,15 @@ export interface ExistsOptions {
 export type ExistsType = "package" | "scope";
 export type ScopeKind = "user" | "org";
 
+export interface ExistsMatch {
+  type: ExistsType;
+  scope?: ScopeKind;
+  url: string;
+}
+
 export interface ExistsResult {
   exists: boolean;
-  type?: ExistsType;
-  scope?: ScopeKind;
-  url?: string;
+  matches?: ExistsMatch[];
   validForNewPackages?: boolean;
   validForOldPackages?: boolean;
   warnings?: string[];
@@ -38,8 +42,7 @@ async function checkScope(
 ): Promise<{ exists: boolean; kind?: ScopeKind }> {
   const scopeName = pkg.startsWith("@")
     ? pkg.split("/")[0].replace("@", "")
-    : null;
-  if (!scopeName) return { exists: false };
+    : pkg;
 
   const res = await fetch(`${registry}/-/org/${scopeName}/user`);
   const data = (await res.json()) as Record<string, string>;
@@ -56,7 +59,9 @@ function npmUrl(pkg: string, type: ExistsType, scopeKind?: ScopeKind): string {
   if (type === "package") {
     return `https://www.npmjs.com/package/${pkg}`;
   }
-  const scopeName = pkg.split("/")[0].replace("@", "");
+  const scopeName = pkg.startsWith("@")
+    ? pkg.split("/")[0].replace("@", "")
+    : pkg;
   if (scopeKind === "user") {
     return `https://www.npmjs.com/~${scopeName}`;
   }
@@ -79,27 +84,30 @@ async function checkOne(
     return { exists: false, ...validationFields };
   }
 
-  if (await isPublic(pkg, registry)) {
-    return {
-      exists: true,
-      type: "package",
-      url: npmUrl(pkg, "package"),
-      ...validationFields,
-    };
+  const [pub, scope] = await Promise.all([
+    isPublic(pkg, registry),
+    checkScope(pkg, registry),
+  ]);
+
+  const matches: ExistsMatch[] = [];
+
+  if (pub) {
+    matches.push({ type: "package", url: npmUrl(pkg, "package") });
   }
 
-  const scope = await checkScope(pkg, registry);
   if (scope.exists) {
-    return {
-      exists: true,
+    matches.push({
       type: "scope",
       scope: scope.kind,
       url: npmUrl(pkg, "scope", scope.kind),
-      ...validationFields,
-    };
+    });
   }
 
-  return { exists: false, ...validationFields };
+  return {
+    exists: matches.length > 0,
+    ...(matches.length > 0 && { matches }),
+    ...validationFields,
+  };
 }
 
 // Single package, default (boolean)

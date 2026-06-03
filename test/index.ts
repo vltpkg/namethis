@@ -26,24 +26,33 @@ describe("pkg-exists", () => {
   it("returns ExistsResult when detailed: true", async () => {
     const result = await exists("react", { detailed: true });
     assert.equal(result.exists, true);
-    assert.equal(result.type, "package");
-    assert.equal(result.url, "https://www.npmjs.com/package/react");
+    assert.ok(result.matches?.some((m) => m.type === "package"));
+    assert.ok(result.matches?.some((m) => m.url === "https://www.npmjs.com/package/react"));
   });
 
   it("returns scope detail when detailed: true", async () => {
     const result = await exists("@darcyclarke/fake", { detailed: true });
     assert.equal(result.exists, true);
-    assert.equal(result.type, "scope");
-    assert.equal(result.scope, "user");
-    assert.ok(result.url?.includes("~darcyclarke"));
+    const scopeMatch = result.matches?.find((m) => m.type === "scope");
+    assert.ok(scopeMatch);
+    assert.equal(scopeMatch?.scope, "user");
+    assert.ok(scopeMatch?.url.includes("~darcyclarke"));
+  });
+
+  it("returns both package and scope when both exist", async () => {
+    const result = await exists("darcyclarke", { detailed: true });
+    assert.equal(result.exists, true);
+    assert.ok(result.matches);
+    assert.ok(result.matches.some((m) => m.type === "package"));
+    assert.ok(result.matches.some((m) => m.type === "scope" && m.scope === "user"));
   });
 
   it("returns detailed Map for array with detailed: true", async () => {
     const results = await exists(["react"], { detailed: true });
     const r = results.get("react");
     assert.equal(r?.exists, true);
-    assert.equal(r?.type, "package");
-    assert.ok(r?.url);
+    assert.ok(r?.matches?.some((m) => m.type === "package"));
+    assert.ok(r?.matches?.some((m) => m.url));
   });
 });
 
