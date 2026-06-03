@@ -1,5 +1,5 @@
 {
-  "name": "findmy",
+  "name": "namethis",
   "version": "1.0.0",
   "description": "Check the existence of a npmjs.com package",
   "type": "module",
@@ -12,7 +12,7 @@
     }
   },
   "bin": {
-    "findmy": "./dist/cli.js"
+    "namethis": "./dist/cli.js"
   },
   "files": [
     "dist"

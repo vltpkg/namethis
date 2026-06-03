@@ -1,11 +1,11 @@
-# findmy
+# namethis
 
 Check whether a package exists on the npm registry.
 
 ## Install
 
 ```bash
-vlt install findmy
+vlt install namethis
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ vlt install findmy
 ### As a module
 
 ```ts
-import exists from "findmy";
+import exists from "namethis";
 
 // returns a boolean by default — easy to use in conditionals
 if (await exists("react")) {
@@ -41,7 +41,7 @@ const detailed = await exists(["react", "fake"], { detailed: true });
 await exists("my-pkg", { registry: "https://registry.internal.co" });
 
 // generate synonym-based name variations
-import { synonyms } from "findmy";
+import { synonyms } from "namethis";
 
 const names = await synonyms("fast-logger");
 // ["quick-logger", "rapid-logger", "speedy-logger", ...]
@@ -55,10 +55,10 @@ const taken = await exists(names);
 Run directly without installing:
 
 ```bash
-vlx findmy react
+vlx namethis react
 # react: exists (package) https://www.npmjs.com/package/react
 
-vlx findmy @scope/pkg fake-package
+vlx namethis @scope/pkg fake-package
 # @scope/pkg: exists (scope: org) https://www.npmjs.com/org/scope
 # fake-package: not found
 ```
@@ -66,7 +66,7 @@ vlx findmy @scope/pkg fake-package
 JSON output with `--view=json`:
 
 ```bash
-vlx findmy react express --view=json
+vlx namethis react express --view=json
 # {
 #   "react": { "exists": true, "type": "package", "url": "..." },
 #   "express": { "exists": true, "type": "package", "url": "..." }
@@ -76,7 +76,7 @@ vlx findmy react express --view=json
 Check similar/synonym names:
 
 ```bash
-vlx findmy fast-logger --similar
+vlx namethis fast-logger --similar
 # fast-logger: exists (package) https://www.npmjs.com/package/fast-logger
 # quick-logger: not found
 # rapid-logger: not found
@@ -87,7 +87,7 @@ vlx findmy fast-logger --similar
 #### CLI Options
 
 ```
-Usage: findmy <package-name> [...package-names]
+Usage: namethis <package-name> [...package-names]
 
 Options:
   --registry <url>   Use a custom registry (default: https://registry.npmjs.org)
@@ -133,7 +133,7 @@ Checks multiple packages concurrently. Returns a `Map` of detailed results.
 Validates a package name against [npm's naming rules](https://github.com/npm/validate-npm-package-name) without making any network requests.
 
 ```ts
-import { validate } from "findmy";
+import { validate } from "namethis";
 
 validate("my-package");
 // { validForNewPackages: true, validForOldPackages: true }

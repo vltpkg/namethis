@@ -7,7 +7,7 @@ import type { ExistsResult } from "./index.js";
 const args = process.argv.slice(2);
 
 if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
-  console.log(`Usage: findmy <package-name> [...package-names]
+  console.log(`Usage: namethis <package-name> [...package-names]
 
 Check if one or more packages exist on the npm registry.
 
@@ -18,10 +18,10 @@ Options:
   -h, --help         Show this help message
 
 Examples:
-  findmy react
-  findmy @scope/pkg my-package
-  findmy fast-logger --similar
-  findmy react --view=json`);
+  namethis react
+  namethis @scope/pkg my-package
+  namethis fast-logger --similar
+  namethis react --view=json`);
   process.exit(0);
 }
 
