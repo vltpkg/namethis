@@ -22,7 +22,4 @@ git tag -a "$TAG" -m "$TAG"
 echo "==> Pushing tag to origin"
 git push origin "$TAG"
 
-echo "==> Publishing to registry"
-vlt publish
-
-echo "==> Released $TAG"
+echo "==> Done. Run 'vlt publish' to publish to the registry."
